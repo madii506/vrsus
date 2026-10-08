@@ -8,7 +8,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="vrsus"><meta property="og:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
 <link rel="preload" href="/assets/fonts/jbm.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/css/v.css?v=9">
+<link rel="stylesheet" href="/assets/css/v.css?v=10">
 <script>window.VRSUS_CONFIG = { ca: '', x: '' };</script>
 
 <title>vrsus · docs</title>
@@ -16,14 +16,25 @@
 <meta property="og:title" content="vrsus · docs">
 </head>
 <body data-page="docs">
-<header class="top">
-  <a class="logo" href="/" aria-label="vrsus home"><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a>
-  <nav class="nav" aria-label="main">
-    <a href="/" data-nav="home">arena</a><a href="/#wire" data-nav="wire">wire</a><a href="/#card" data-nav="card">fight card</a><a href="/#term" data-nav="term">terminal</a><a href="/#proof" data-nav="proof">proofs</a><a href="/pair" data-nav="pair">pair</a><a href="/docs" data-nav="docs">docs</a>
+<aside class="rail" id="rail" aria-label="main">
+  <a class="mark" href="/" aria-label="vrsus home"><span class="sq"><i></i><i></i></span><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a>
+  <div class="tag2">every event is two coins</div>
+  <nav class="rounds" aria-label="sections">
+    <a href="/#arena" data-nav="home" data-to="arena"><i>00</i>arena</a>
+    <a href="/#wire" data-to="wire"><i>01</i>the wire</a>
+    <a href="/#card" data-to="card"><i>02</i>fight card</a>
+    <a href="/#term" data-to="term"><i>03</i>terminal</a>
+    <a href="/#board" data-to="board"><i>04</i>the board</a>
+    <a href="/#receipts" data-to="receipts"><i>05</i>receipts</a>
+    <a href="/#proof" data-to="proof"><i>06</i>proofs</a>
+    <a href="/#system" data-to="system"><i>09</i>system</a>
+    <span class="gap"></span>
+    <a href="/pair" data-nav="pair"><i>++</i>pair an event</a>
+    <a href="/docs" data-nav="docs"><i>??</i>docs</a>
   </nav>
-  <div class="acts"><a class="br launchb" href="/pair"><span class="p">+</span> pair an event</a><button class="br" type="button" data-connect>connect</button></div>
-</header>
-<div class="tape" id="tape" aria-label="live duels"><div class="sys" id="sys" aria-live="off"><span class="dot" id="sysDot"></span><span class="eng">engine <b id="sysE">—</b></span><span>slot <b id="sysS">—</b></span></div><div class="in"><span class="it dim">reading the duels…</span><span class="sep">//</span><span class="it dim">reading the duels…</span><span class="sep">//</span></div></div>
+  <div class="ract"><a class="btn sm2" href="/pair"><span class="p">+</span> pair an event</a><button class="br" type="button" data-connect>connect</button></div>
+</aside>
+<header class="mbar"><a class="mark" href="/" aria-label="vrsus home"><span class="sq"><i></i><i></i></span><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a><span class="r"><a class="br sm" href="/pair"><span class="p">+</span> pair</a><button class="br sm" type="button" id="railGo" aria-controls="rail" aria-expanded="false">menu</button></span></header>
 
 <main class="wrap dgrid">
   <nav class="dnav" aria-label="docs">
@@ -144,12 +155,11 @@
   <aside class="toc"><div class="h">on this page</div><a href="#sources">the sources</a><a href="#timing">how fast</a><a href="#payouts">payouts</a><a href="#verify">verify</a><a href="#custody">custody</a><a href="/pair">pair an event -&gt;</a></aside>
 </main>
 <div style="height:60px"></div>
-<script src="/assets/js/vrsus.js?v=9"></script>
-<script src="/assets/js/core.js?v=9"></script>
+<script src="/assets/js/vrsus.js?v=10"></script>
+<script src="/assets/js/core.js?v=10"></script>
 <script>
 (function () {
   const { $, $$, esc, api } = VR; VR.tape(); VR.nudge();
-  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === 'docs'));
   $('[data-copy-link]').addEventListener('click', e => { e.preventDefault(); VR.copy(location.href.split('#')[0], 'Link copied'); });
   const nav = $$('.dnav a'), secs = nav.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
   const spy = () => { let cur = secs[0]; for (const s of secs) if (s.getBoundingClientRect().top < 120) cur = s; nav.forEach(a => a.classList.toggle('on', cur && a.getAttribute('href') === '#' + cur.id)); };
