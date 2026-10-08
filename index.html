@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0c0b">
+<link rel="icon" href="/assets/img/fav32.png" sizes="32x32"><link rel="icon" href="/assets/img/fav64.png" sizes="64x64"><link rel="apple-touch-icon" href="/assets/img/fav180.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="vrsus"><meta property="og:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<link rel="preload" href="/assets/fonts/jbm.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/v.css?v=9">
+<script>window.VRSUS_CONFIG = { ca: '', x: '' };</script>
+
+<title>vrsus</title>
+<meta name="description" content="Every event is two coins. Pair any real event to a YES coin and a NO coin on pump.fun. Both coins' fees fill one pot, and when the world decides, the winning side's holders are paid in SOL.">
+<meta property="og:title" content="vrsus · every event is two coins"><meta property="og:description" content="Pick a side on pump.fun. The world decides. The winners take the pot, in SOL, with every step on the record.">
+</head>
+<body data-page="home">
+<header class="top">
+  <a class="logo" href="/" aria-label="vrsus home"><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a>
+  <nav class="nav" aria-label="main">
+    <a href="/" data-nav="home">arena</a><a href="/#wire" data-nav="wire">wire</a><a href="/#card" data-nav="card">fight card</a><a href="/#term" data-nav="term">terminal</a><a href="/#proof" data-nav="proof">proofs</a><a href="/pair" data-nav="pair">pair</a><a href="/docs" data-nav="docs">docs</a>
+  </nav>
+  <div class="acts"><a class="br launchb" href="/pair"><span class="p">+</span> pair an event</a><button class="br" type="button" data-connect>connect</button></div>
+</header>
+<div class="tape" id="tape" aria-label="live duels"><div class="sys" id="sys" aria-live="off"><span class="dot" id="sysDot"></span><span class="eng">engine <b id="sysE">—</b></span><span>slot <b id="sysS">—</b></span></div><div class="in"><span class="it dim">reading the duels…</span><span class="sep">//</span><span class="it dim">reading the duels…</span><span class="sep">//</span></div></div>
+
+<main>
+<section class="wrap arena" id="arena" aria-label="the arena">
+  <div class="kick"><div class="prompt" id="prompt" style="margin:0"><span class="gt">&gt;</span>every event is two coins<span class="cur u"></span></div><span class="dim" id="arenaN"></span></div>
+  <h1 class="sr">vrsus: every event is two coins</h1>
+  <pre class="big wm" aria-hidden="true"><span class="fy">##</span><span class="s">\</span>    <span class="fy">##</span><span class="s">\</span>  <span class="fy">######</span><span class="s">\</span>   <span class="fy">###</span><span class="fn">####</span><span class="s">\</span> <span class="fn">##</span><span class="s">\</span>   <span class="fn">##</span><span class="s">\</span>  <span class="fn">#######</span><span class="s">\</span>
+<span class="s">\</span><span class="fy">##</span><span class="s">\</span>  <span class="fy">##</span>  <span class="s">|</span><span class="fy">##</span>  <span class="s">__</span><span class="fy">##</span><span class="s">\</span> <span class="fy">##</span>  <span class="s">_____|</span><span class="fn">##</span> <span class="s">|</span>  <span class="fn">##</span> <span class="s">|</span><span class="fn">##</span>  <span class="s">_____|</span>
+ <span class="s">\</span><span class="fy">##</span><span class="s">\</span><span class="fy">##</span>  <span class="s">/</span> <span class="fy">##</span> <span class="s">|</span>  <span class="s">\__|\</span><span class="fy">###</span><span class="fn">###</span><span class="s">\</span>  <span class="fn">##</span> <span class="s">|</span>  <span class="fn">##</span> <span class="s">|\</span><span class="fn">######</span><span class="s">\</span>
+  <span class="s">\</span><span class="fy">###</span>  <span class="s">/</span>  <span class="fy">##</span> <span class="s">|</span>       <span class="s">\____</span><span class="fn">##</span><span class="s">\</span> <span class="fn">##</span> <span class="s">|</span>  <span class="fn">##</span> <span class="s">|</span> <span class="s">\____</span><span class="fn">##</span><span class="s">\</span>
+   <span class="s">\</span><span class="fy">#</span>  <span class="s">/</span>   <span class="fy">##</span> <span class="s">|</span>      <span class="fy">####</span><span class="fn">###</span>  <span class="s">|\</span><span class="fn">######</span>  <span class="s">|</span><span class="fn">#######</span>  <span class="s">|</span>
+    <span class="s">\_/</span>    <span class="s">\__|</span>      <span class="s">\_______/</span>  <span class="s">\______/</span> <span class="s">\_______/</span></pre>
+  <div id="arenaBd" style="margin-top:18px"><div class="empty">reading the arena…</div></div>
+  <div class="ca" id="ca"></div>
+</section>
+
+<section class="wrap sec rv" id="wire">
+  <div class="box wire">
+    <div class="hd"><h2>THE WIRE</h2><div class="ctl"><span class="tabs" id="wTabs" style="margin:0"><button class="br sm on" type="button" data-w="">all</button><button class="br sm" type="button" data-w="polymarket">world</button><button class="br sm" type="button" data-w="espn">sports</button><button class="br sm" type="button" data-w="coinbase">price</button></span></div></div>
+    <div class="bd" id="wList"><div class="empty">listening to the wire…</div></div>
+    <div class="wfoot"><span class="lis" id="wLis">news hits a source · it lands here · pair it into a duel in one click</span><span id="wHealth"></span></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="card">
+  <div class="box card">
+    <div class="hd"><h2>FIGHT CARD</h2><div class="ctl"><span class="tabs" id="cardTabs" style="margin:0"><button class="br sm on" type="button" data-s="live">live</button><button class="br sm" type="button" data-s="settled">settled</button><button class="br sm" type="button" data-s="">all</button></span></div></div>
+    <div class="bd" id="cardBd"><div class="empty">reading the card…</div></div>
+    <div class="foot"><span>the bar is the crowd: each side’s market cap, as a share of both</span><span id="cardN"></span></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="term">
+  <div class="box term">
+    <div class="hd"><h2>TERMINAL</h2><div class="ctl"><span>talk to the engine · every proof runs in your browser</span></div></div>
+    <div class="bd">
+      <div class="tout" id="tOut" role="log" aria-live="polite"></div>
+      <form class="tin" id="tForm" autocomplete="off"><label class="ps" for="tIn">vrsus@engine:~$</label><input id="tIn" spellcheck="false" autocapitalize="off" enterkeyhint="go" placeholder="help"></form>
+      <div class="tchips"><button class="br sm" type="button" data-run="help">help</button><button class="br sm" type="button" data-run="duels">duels</button><button class="br sm" type="button" data-run="wire">wire</button><button class="br sm" type="button" data-run="status">status</button><button class="br sm" type="button" data-run="duel 1">duel 1</button><button class="br sm" type="button" data-run="read 1">read 1</button><button class="br sm" type="button" data-run="rules">rules</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="board">
+  <div class="box">
+    <div class="hd"><h2>THE BOARD</h2><div class="ctl"><span>real events you can pair right now</span></div></div>
+    <div class="bd">
+      <div class="tabs" id="bTabs"><button class="br sm on" type="button" data-k="pm">world</button><button class="br sm" type="button" data-k="game">sports</button><button class="br sm" type="button" data-k="price">price</button></div>
+      <div class="tabs" id="bSub"></div>
+      <div id="bList"><div class="empty">reading the board…</div></div>
+    </div>
+    <div class="foot"><span id="bSrc">source: polymarket · settles when Polymarket resolves the market</span><span id="bAt"></span></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="receipts">
+  <div class="box">
+    <div class="hd"><h2>RECEIPTS</h2><div class="ctl"><span>every settlement, with the raw reading it settled on</span></div></div>
+    <div class="bd" id="rcBd"><div class="empty">reading the receipts…</div></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="proof">
+  <div class="box verify">
+    <div class="hd"><h2>CHECK YOUR WALLET</h2><div class="ctl"><span>merkle proofs, computed in your browser</span></div></div>
+    <div class="bd">
+      <form class="pform" id="pForm"><input id="pIn" placeholder="paste any Solana wallet" spellcheck="false" autocomplete="off" aria-label="wallet address"><button class="br" type="submit">check</button><button class="br" type="button" id="pMe">use my wallet</button></form>
+      <div class="pres" id="pRes"></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="money">
+  <div class="box money">
+    <div class="hd"><h2>WHERE THE MONEY GOES</h2><div class="ctl"><span>one creator wallet, two coins, one pot</span></div></div>
+    <div class="bd"><pre id="moneyArt" aria-hidden="true"></pre>
+      <p class="sub" style="margin-top:14px">Both coins in a duel are created by the same wallet, so pump.fun pays both coins’ creator fees to one place: the pot. Trading on either side fills it. When the source says how the event ended, the engine snapshots every holder of the winning coin, publishes the snapshot and its hash, and pays the pot out pro rata to the size of each bag. After that, every 24 hours, new fees go to the winning side again.</p></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="sources">
+  <div class="box">
+    <div class="hd"><h2>HOW IT SETTLES</h2><div class="ctl"><span>three public sources, read every minute</span></div></div>
+    <div class="bd">
+      <div class="srcs">
+        <div><h3>world <span>· polymarket</span></h3><p>War, politics, money, crypto, tech, culture. A duel settles the moment Polymarket closes the market and its price settles to exactly one side. A voided market voids the duel.</p><div class="lat">settles on the first engine pass after Polymarket resolves</div><code>gamma-api.polymarket.com/markets/&lt;id&gt;</code></div>
+        <div><h3>sports <span>· espn</span></h3><p>Soccer, NBA, NFL, NHL, MLB. A duel is “will the home side win”. It settles the moment ESPN marks the game final. A draw is a NO. A cancelled game voids the duel.</p><div class="lat">settles within about a minute of the final whistle</div><code>site.api.espn.com/…/summary?event=&lt;id&gt;</code></div>
+        <div><h3>price <span>· coinbase</span></h3><p>SOL, BTC or ETH above or below a line at an exact minute. It settles on the close of Coinbase’s one-minute candle that opens at that minute.</p><div class="lat">settles within about a minute of the deadline</div><code>api.exchange.coinbase.com/…/candles?granularity=60</code></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="system">
+  <div class="box">
+    <div class="hd"><h2>SYSTEM</h2><div class="ctl"><button class="br sm" type="button" id="probeGo">run diagnostics</button></div></div>
+    <div class="sysg">
+      <div><span class="k">solana slot</span><b class="v" id="xSlot">—</b><span class="s" id="xEp">reading the chain…</span></div>
+      <div><span class="k">engine</span><b class="v" id="xLast">—</b><span class="s" id="xNext">—</span></div>
+      <div><span class="k">passes · 24h</span><b class="v" id="xPass">—</b><span class="s" id="xPassS">—</span></div>
+      <div><span class="k">paid out</span><b class="v" id="xPaid">—</b><span class="s" id="xPaidS">—</span></div>
+    </div>
+    <div class="hb"><pre id="xHb" aria-hidden="true"></pre><div class="ax"><span>60 min ago</span><span id="xHbL">each column is one engine pass · height is how long it took</span><span>now</span></div></div>
+    <div class="bd" style="padding-top:10px"><div style="overflow-x:auto"><table class="tbl" id="probe"><thead><tr><th>source</th><th>status</th><th>latency</th><th>a reading, right now</th></tr></thead><tbody><tr><td colspan="4" class="dim">reading every source…</td></tr></tbody></table></div></div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="engine">
+  <div class="box">
+    <div class="hd"><h2>THE ENGINE</h2><div class="ctl"><a class="br sm" href="/docs#custody">read the details</a></div></div>
+    <div class="bd">
+      <p class="sub">vrsus is custodial, like wrld, and says so. Each duel has one wallet, held by the engine. It is the pump.fun creator of both coins. Here is exactly what it can and can’t do.</p>
+      <div class="cant">
+        <div><div class="h">it cannot</div></div><div><div class="h">so it</div></div>
+        <div>sell either coin. There is no sell action in the code.</div><div>only claims fees and pays holders in SOL.</div>
+        <div>settle on a guess, a tweet or a headline.</div><div>waits for the source’s own final answer, and stores the raw reading.</div>
+        <div>pay anyone the snapshot doesn’t list.</div><div>publishes every snapshot with its hash, so anyone can recompute every payout.</div>
+        <div>pay twice.</div><div>marks each payout with its transaction before sending, and checks it on the next pass.</div>
+      </div>
+      <div class="facts">
+        <div><b>5%</b><span>vrsus’s cut of each fee claim</span></div>
+        <div><b id="stTick">~1 min</b><span id="stTickL">between engine passes</span></div>
+        <div><b id="stPaid">—</b><span>paid to winning holders</span></div>
+        <div><b id="stLive">—</b><span>duels live right now</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec rv" id="faq">
+  <div class="box">
+    <div class="hd"><h2>FAQ</h2></div>
+    <div class="bd">
+      <details><summary>What is vrsus?</summary><div>A pump.fun launchpad where every launch is a duel: one real event, a YES coin and a NO coin. You pick a side by buying a coin. Both coins’ creator fees go to one pot, and when the event’s source says how it ended, the pot is paid in SOL to the holders of the winning coin.</div></details>
+      <details><summary>How fast does it settle?</summary><div>The engine runs every minute. Sports duels settle within about a minute of ESPN marking the game final. Price duels settle within about a minute of their deadline. World duels settle on the first pass after Polymarket resolves the market, which follows Polymarket’s own resolution process.</div></details>
+      <details><summary>How do I check a payout?</summary><div>Every round publishes the snapshot of holders it paid from, its SHA-256 hash, a Merkle root over what each wallet is owed, and every payout with its transaction. Paste your wallet under CHECK YOUR WALLET to see your leaf and your path to the root, or run <code>verify</code> and <code>chain</code> in the terminal. To check without trusting this site at all, download a duel’s proof bundle and run <code>verify.mjs</code> against any RPC (see the docs).</div></details>
+      <details><summary>Who counts as a holder?</summary><div>Every wallet holding the winning coin at the moment the engine settles, read straight from the chain. Pools, the bonding curve and the duel’s own wallet are left out. If the RPC won’t list every holder, the round says so and pays the 20 largest.</div></details>
+      <details><summary>What if the game is cancelled or the market is voided?</summary><div>The duel is void and the pot is split in half: one half to the YES holders, one half to the NO holders, each pro rata.</div></details>
+      <details><summary>Is it custodial?</summary><div>Yes. Each duel’s wallet is derived and held by the engine, the same model as wrld and rulr. That is what lets it settle without anyone signing. If that isn’t for you, don’t pair here.</div></details>
+      <details><summary>What does pairing cost?</summary><div>Two first buys (one on each side), about 0.06 SOL of pump.fun rent and fees for the two coins, and a 0.015 SOL gas reserve that stays in the duel’s wallet. Anything left over goes back to you with your first-buy tokens.</div></details>
+    </div>
+  </div>
+</section>
+</main>
+<script src="/assets/js/vrsus.js?v=9"></script>
+<script src="/assets/js/core.js?v=9"></script>
+<script>window.VS_ART = { vs: "<span class=\"fi\">##</span><span class=\"s\">\\</span>    <span class=\"fi\">##</span><span class=\"s\">\\</span>  <span class=\"fi\">#######</span><span class=\"s\">\\</span>\n<span class=\"s\">\\</span><span class=\"fi\">##</span><span class=\"s\">\\</span>  <span class=\"fi\">##</span>  <span class=\"s\">|</span><span class=\"fi\">##</span>  <span class=\"s\">_____|</span>\n <span class=\"s\">\\</span><span class=\"fi\">##</span><span class=\"s\">\\</span><span class=\"fi\">##</span>  <span class=\"s\">/</span> <span class=\"s\">\\</span><span class=\"fi\">######</span><span class=\"s\">\\</span>\n  <span class=\"s\">\\</span><span class=\"fi\">###</span>  <span class=\"s\">/</span>   <span class=\"s\">\\____</span><span class=\"fi\">##</span><span class=\"s\">\\</span>\n   <span class=\"s\">\\</span><span class=\"fi\">#</span>  <span class=\"s\">/</span>   <span class=\"fi\">#######</span>  <span class=\"s\">|</span>\n    <span class=\"s\">\\_/</span>    <span class=\"s\">\\_______/</span>" };</script>
+<script src="/assets/js/proof.js?v=9"></script>
+<script src="/assets/js/home.js?v=9"></script>
+<script src="/assets/js/term.js?v=9"></script>
+</body>
+</html>

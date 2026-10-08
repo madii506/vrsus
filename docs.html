@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0c0b">
+<link rel="icon" href="/assets/img/fav32.png" sizes="32x32"><link rel="icon" href="/assets/img/fav64.png" sizes="64x64"><link rel="apple-touch-icon" href="/assets/img/fav180.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="vrsus"><meta property="og:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<link rel="preload" href="/assets/fonts/jbm.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/v.css?v=9">
+<script>window.VRSUS_CONFIG = { ca: '', x: '' };</script>
+
+<title>vrsus · docs</title>
+<meta name="description" content="How vrsus works: duels, the shared pot, the three sources, settlement, payouts, verification, custody and failure paths.">
+<meta property="og:title" content="vrsus · docs">
+</head>
+<body data-page="docs">
+<header class="top">
+  <a class="logo" href="/" aria-label="vrsus home"><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a>
+  <nav class="nav" aria-label="main">
+    <a href="/" data-nav="home">arena</a><a href="/#wire" data-nav="wire">wire</a><a href="/#card" data-nav="card">fight card</a><a href="/#term" data-nav="term">terminal</a><a href="/#proof" data-nav="proof">proofs</a><a href="/pair" data-nav="pair">pair</a><a href="/docs" data-nav="docs">docs</a>
+  </nav>
+  <div class="acts"><a class="br launchb" href="/pair"><span class="p">+</span> pair an event</a><button class="br" type="button" data-connect>connect</button></div>
+</header>
+<div class="tape" id="tape" aria-label="live duels"><div class="sys" id="sys" aria-live="off"><span class="dot" id="sysDot"></span><span class="eng">engine <b id="sysE">—</b></span><span>slot <b id="sysS">—</b></span></div><div class="in"><span class="it dim">reading the duels…</span><span class="sep">//</span><span class="it dim">reading the duels…</span><span class="sep">//</span></div></div>
+
+<main class="wrap dgrid">
+  <nav class="dnav" aria-label="docs">
+    <div class="h">start</div><a href="#overview">overview</a><a href="#pairing">pairing</a>
+    <div class="h">settling</div><a href="#sources">the sources</a><a href="#timing">how fast</a><a href="#payouts">payouts</a><a href="#verify">verify a payout</a><a href="#verifymjs">verify.mjs</a><a href="#void">void</a>
+    <div class="h">engine</div><a href="#custody">custody</a><a href="#fees">fees</a><a href="#live">sources, live</a><a href="#failures">failure paths</a><a href="#api">api</a>
+  </nav>
+  <article class="prose">
+    <h1>vrsus docs</h1>
+    <div class="meta3">8 min read · <a href="#" data-copy-link>copy link</a></div>
+    <div class="note"><b>the uncomfortable part first.</b> vrsus is custodial. The engine holds each duel’s wallet, the wallet pump.fun pays both coins’ creator fees to, and it pays the pot out when the event settles. That is the only way a pot can pay itself out without someone signing. It is the same model wrld and rulr use. Memecoins can go to zero, and nothing here is advice.</div>
+
+    <h2 id="overview"><span class="e">01</span>overview</h2>
+    <p>Every launch on vrsus is a duel: one real event and two pump.fun coins, a YES coin and a NO coin. You pick a side by buying a coin. Both coins are created by the same wallet, so pump.fun pays both coins’ creator fees to one place: the pot. When the event’s source gives a final answer, the engine pays the pot in SOL to everyone holding the winning coin, pro rata to the size of their bag. After that, fees keep coming in as long as the coins trade, and every 24 hours they go to the winning side again.</p>
+
+    <h2 id="pairing"><span class="e">02</span>pairing</h2>
+    <ul>
+      <li>Pick a real event from one of the three sources. The server re-reads the source before it accepts it: the market must be open, the game not started, the price minute at least an hour away.</li>
+      <li>Name the two coins and give each a picture (or draw the green and red coins), and choose a first buy for each side.</li>
+      <li>vrsus records the duel, derives its wallet and both mint addresses, and tells you one amount to send.</li>
+      <li>You send that one SOL transfer. The engine creates both coins from the duel’s wallet with your first buys, then sends you the tokens of both and any unused SOL.</li>
+      <li>The coins’ pump.fun descriptions carry the question, the exact rule and the duel’s fingerprint.</li>
+    </ul>
+    <table class="costs" style="max-width:560px"><tr><td>two first buys</td><td>your choice, 0.01–2 SOL each (+2% for fees)</td></tr><tr><td>pump.fun rent and fees, two coins</td><td>about 0.06 SOL, the unused part comes back</td></tr><tr><td>gas reserve, kept in the duel’s wallet</td><td>0.015 SOL</td></tr><tr><td>vrsus’s cut</td><td>nothing at launch; 5% of each fee claim</td></tr></table>
+
+    <h2 id="sources"><span class="e">03</span>the sources</h2>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>kind</th><th>the question</th><th>settles</th><th>read from</th></tr></thead><tbody>
+      <tr><td>world</td><td>any open Polymarket market (war, politics, money, crypto, tech, culture)</td><td>YES or NO when Polymarket closes the market and its price settles to exactly 1 or 0; void if Polymarket voids it</td><td><code>gamma-api.polymarket.com/markets/&lt;id&gt;</code>: <code>closed</code>, <code>outcomePrices</code>, <code>umaResolutionStatus</code></td></tr>
+      <tr><td>sports</td><td>will the home side beat the away side (soccer, NBA, NFL, NHL, MLB)</td><td>YES if ESPN marks the game final with the home side as the winner; NO on a loss or a draw; void if cancelled, or not played 14 days after the scheduled start</td><td><code>site.api.espn.com/…/summary?event=&lt;id&gt;</code>: status, scores, winner flags</td></tr>
+      <tr><td>price</td><td>will SOL, BTC or ETH be above or below a line at an exact minute</td><td>on the close of the Coinbase one-minute candle that opens at that minute</td><td><code>api.exchange.coinbase.com/products/&lt;X&gt;-USD/candles?granularity=60</code></td></tr>
+    </tbody></table></div>
+    <p>A duel never settles on a headline, a post or a guess. If the source doesn’t answer, the duel waits and its page says so.</p>
+
+    <h2 id="timing"><span class="e">04</span>how fast</h2>
+    <p>The engine runs every minute (Vercel Cron, with a GitHub Actions backup and every page visit nudging it). Each pass reads every live duel’s source. The first pass that sees a final answer settles the duel in the same pass: final claim, snapshot, payouts.</p>
+    <ul><li><b>sports</b>: within about a minute of ESPN marking the game final.</li><li><b>price</b>: within about a minute of the deadline, once Coinbase publishes that minute’s candle.</li><li><b>world</b>: on the first pass after Polymarket resolves the market, which follows Polymarket’s own resolution process.</li></ul>
+    <p>Holders are read at the moment of settlement. Trading doesn’t stop before that: if you buy the winning side after the news but before the source settles, you hold it at the snapshot like everyone else.</p>
+
+    <h2 id="payouts"><span class="e">05</span>payouts</h2>
+    <ul>
+      <li>The engine lists every token account of the winning coin straight from the chain and adds them up per wallet. Pools, the bonding curve and the duel’s own wallet are left out. If the RPC won’t list every account, the round says so and uses the 20 largest.</li>
+      <li>The pot is the duel wallet’s balance minus the gas reserve and a little for the payout transactions.</li>
+      <li>Each wallet gets <code>floor(pot × its bag ÷ all bags)</code> lamports. Payouts under 0.0001 SOL are skipped and stay in the pot for the next round.</li>
+      <li>The snapshot (every wallet and its bag) is published with the round, with its SHA-256 hash over <code>side|pot|owner:amount,owner:amount,…</code> in the published order, and a Merkle root over what each wallet is owed (see <a href="#verify">verify</a>).</li>
+      <li>Payouts go out in transactions of 12. Each payout is marked with its transaction before it is sent and checked on the next pass, so nothing is paid twice and nothing is skipped.</li>
+    </ul>
+
+    <h2 id="verify"><span class="e">06</span>verify a payout</h2>
+    <p>Every round publishes two commitments before a single lamport moves: the <b>snapshot hash</b> (SHA-256 over the whole holder list) and a <b>Merkle root</b> over what each wallet is owed. Three ways to check them, from most convenient to trusting vrsus the least:</p>
+    <ul>
+      <li><b>In the browser.</b> On a duel page, <b>verify this round</b> recomputes the hash, the root and every split from the published snapshot; <b>check on chain</b> reads every payout transaction back from a public RPC and matches each transfer. On the home page, <b>check your wallet</b> walks your leaf up to the published root.</li>
+      <li><b>In the terminal.</b> <code>verify &lt;#&gt; [round]</code>, <code>proof &lt;#&gt; &lt;round&gt; &lt;wallet&gt;</code> and <code>chain &lt;#&gt; [round]</code> do the same, as text.</li>
+      <li><b>Without us.</b> Download a duel’s proof bundle and run <code>verify.mjs</code> (below). It re-reads the source itself and reads the chain from any RPC you choose.</li>
+    </ul>
+    <h3>the merkle tree</h3>
+    <div class="code"><span class="cm"># one leaf per wallet, in the snapshot's published order</span>
+<span class="kw">leaf</span> = sha256("L|" + round + "|" + side + "|" + owner + "|" + bag + "|" + lamports)
+<span class="kw">node</span> = sha256("N|" + left + "|" + right)        <span class="cm"># hex strings; an odd node at the end of a level moves up unchanged</span>
+<span class="kw">lamports</span> = floor(pot × bag ÷ all bags)          <span class="cm"># the leaf commits to what is owed; payouts under 100,000 lamports are skipped</span></div>
+    <h3 id="verifymjs">verify.mjs</h3>
+    <p>One file, no dependencies, Node 18 or newer. Point it at a duel and, optionally, at your own RPC:</p>
+    <div class="cmdline"><span class="ps">$</span><code>curl -sO https://vrsus.vercel.app/verify.mjs &amp;&amp; node verify.mjs &lt;duel-id&gt; --rpc https://your-rpc</code></div>
+    <ol>
+      <li><b>the event</b>: re-reads Polymarket, ESPN or Coinbase directly and applies the published rule.</li>
+      <li><b>the pot</b>: reads both coins’ pump.fun bonding curves and checks their creator is the duel wallet, so both coins’ fees really fill one pot.</li>
+      <li><b>the rounds</b>: recomputes the bag total, the snapshot hash, the Merkle root and every split.</li>
+      <li><b>the chain</b>: reads every payout transaction and matches each transfer from the duel wallet, wallet by wallet, lamport by lamport.</li>
+    </ol>
+    <p>It exits with code 0 when everything checks out and 1 when anything doesn’t, so it can run in CI. Pass <code>--bundle file.json</code> to check a bundle you saved earlier.</p>
+
+    <h2 id="void"><span class="e">07</span>void</h2>
+    <p>If the source voids the event (a cancelled game, a voided market), the pot is split in half: one round pays the YES holders, one round pays the NO holders, each pro rata.</p>
+
+    <h2 id="custody"><span class="e">08</span>custody</h2>
+    <p>Each duel’s wallet and both mint keys are derived on the server from one master secret and the duel id, using HMAC-SHA256. They are never stored. The wallet is the pump.fun creator of both coins.</p>
+    <ul>
+      <li>The engine’s code moves SOL in four ways only: the launch hand-back, refunds, vrsus’s 5%, and payouts to the snapshot. There is no sell and no withdraw.</li>
+      <li>What you are trusting: that the engine keeps running, and that the master secret stays secret. If either fails, payouts stop; the SOL stays in the duel’s wallet.</li>
+    </ul>
+
+    <h2 id="fees"><span class="e">09</span>fees</h2>
+    <p>When at least 0.003 SOL of creator fees is waiting, the engine claims it into the duel’s wallet. vrsus takes 5% of each claim. Trades go through PumpPortal’s local transaction API, which adds its own 0.5%.</p>
+
+    <h2 id="live"><span class="e">10</span>sources, live</h2>
+    <p>Each row times a real read from the server right now.</p>
+    <div style="overflow-x:auto"><table class="tbl" id="probe"><thead><tr><th>source</th><th>status</th><th>ms</th><th>sample</th></tr></thead><tbody><tr><td colspan="4" class="dim">press try</td></tr></tbody></table></div>
+    <div class="cta" style="margin-top:12px"><button class="br" type="button" id="probeGo">try every source</button><button class="br" type="button" id="selfGo">run the engine self-test</button></div>
+    <div class="code" id="selfOut" style="margin-top:12px" hidden></div>
+
+    <h2 id="failures"><span class="e">11</span>failure paths</h2>
+    <table class="tbl"><thead><tr><th>if</th><th>then</th></tr></thead><tbody>
+      <tr><td>the deposit never arrives in full within 3 hours</td><td>the duel expires and anything sent is returned</td></tr>
+      <tr><td>creating a coin fails three times</td><td>the duel fails and what is left of the deposit is returned</td></tr>
+      <tr><td>the source doesn’t answer</td><td>the duel waits; nothing settles on a missing reading</td></tr>
+      <tr><td>a payout transaction doesn’t land</td><td>those payouts are sent again on the next pass; the duel stays “settling” until every payout has landed</td></tr>
+      <tr><td>no one holds the winning coin</td><td>the pot waits and the log says so</td></tr>
+      <tr><td>the engine stops</td><td>nothing settles; the SOL stays in the duel’s wallet</td></tr>
+    </tbody></table>
+
+    <h2 id="api"><span class="e">12</span>api</h2>
+    <p>Everything the pages show comes from these public endpoints. CORS is open, responses are JSON, nothing needs a key.</p>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>endpoint</th><th>what</th></tr></thead><tbody>
+      <tr><td><a class="u" href="/api/duels" target="_blank">/api/duels</a></td><td>every duel; <code>?id=</code> for one with its rounds and log</td></tr>
+      <tr><td>/api/duels?op=round&amp;id=&amp;r=</td><td>one payout round: the snapshot, its hash and Merkle root, every payout and its transaction</td></tr>
+      <tr><td>/api/duels?op=bundle&amp;id=</td><td>a duel’s whole proof as one JSON file (what <code>verify.mjs</code> checks)</td></tr>
+      <tr><td>/api/duels?op=series&amp;id=</td><td>a duel’s tape: both market caps, the pot and the source’s number, about every 5 minutes</td></tr>
+      <tr><td>/api/duels?op=wallet&amp;w=</td><td>every round, payout and launch for one wallet</td></tr>
+      <tr><td><a class="u" href="/api/duels?op=receipts" target="_blank">/api/duels?op=receipts</a></td><td>settled duels with the raw reading they settled on</td></tr>
+      <tr><td><a class="u" href="/api/duels?op=stats" target="_blank">/api/duels?op=stats</a></td><td>totals and the engine’s heartbeat (every pass in the last hour)</td></tr>
+      <tr><td><a class="u" href="/api/events?op=wire" target="_blank">/api/events?op=wire</a></td><td>the wire: new markets, odds moves, games live and final, price moves; pairable lines carry their event</td></tr>
+      <tr><td><a class="u" href="/api/events?op=chain" target="_blank">/api/events?op=chain</a></td><td>Solana right now: slot, block height, epoch, TPS</td></tr>
+      <tr><td>/api/events?op=world|sports|price</td><td>the events you can pair</td></tr>
+      <tr><td>/api/events?op=read (POST {event})</td><td>what an event’s source says right now, with the raw evidence</td></tr>
+      <tr><td><a class="u" href="/api/events?op=probe" target="_blank">/api/events?op=probe</a></td><td>every source, timed</td></tr>
+      <tr><td>/api/tick</td><td>one engine pass (locked to one a minute, safe to call)</td></tr>
+    </tbody></table></div>
+  </article>
+  <aside class="toc"><div class="h">on this page</div><a href="#sources">the sources</a><a href="#timing">how fast</a><a href="#payouts">payouts</a><a href="#verify">verify</a><a href="#custody">custody</a><a href="/pair">pair an event -&gt;</a></aside>
+</main>
+<div style="height:60px"></div>
+<script src="/assets/js/vrsus.js?v=9"></script>
+<script src="/assets/js/core.js?v=9"></script>
+<script>
+(function () {
+  const { $, $$, esc, api } = VR; VR.tape(); VR.nudge();
+  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === 'docs'));
+  $('[data-copy-link]').addEventListener('click', e => { e.preventDefault(); VR.copy(location.href.split('#')[0], 'Link copied'); });
+  const nav = $$('.dnav a'), secs = nav.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const spy = () => { let cur = secs[0]; for (const s of secs) if (s.getBoundingClientRect().top < 120) cur = s; nav.forEach(a => a.classList.toggle('on', cur && a.getAttribute('href') === '#' + cur.id)); };
+  addEventListener('scroll', spy, { passive: true }); spy();
+  $('#probeGo').addEventListener('click', async e => {
+    e.currentTarget.disabled = true; $('#probe tbody').innerHTML = '<tr><td colspan="4" class="dim">reading…</td></tr>';
+    const r = await api('/api/events?op=probe'); e.currentTarget.disabled = false;
+    if (!r || !r.ok) { $('#probe tbody').innerHTML = '<tr><td colspan="4" class="red">the server didn’t answer</td></tr>'; return; }
+    $('#probe tbody').innerHTML = r.rows.map(x => `<tr><td>${esc(x.name)}</td><td>${x.ok ? '<span class="g">ok</span>' : '<span class="burn">offline</span>'}</td><td>${x.ms}</td><td class="dim">${esc(x.sample || '—')}</td></tr>`).join('');
+  });
+  $('#selfGo').addEventListener('click', async e => {
+    const b = e.currentTarget; b.disabled = true; const o = $('#selfOut'); o.hidden = false; o.textContent = 'building a create and a claim with a throwaway wallet, checking the keys and the holder list…';
+    const r = await api('/api/pair?op=selftest'); b.disabled = false;
+    if (!r || !r.ok) { o.textContent = (r && r.error) || 'the self-test didn’t answer'; return; }
+    const line = (k, v) => v ? `${k.padEnd(8)} ${v.ok ? 'ok' : 'FAILED'}${v.bytes ? ' · built ' + v.bytes + ' bytes' : ''}${v.sim ? ' · simulated: ' + (v.sim.err ? JSON.stringify(v.sim.err).slice(0, 80) : 'ok') : ''}${v.error ? ' · ' + v.error : ''}${v.stable != null ? ' · derived keys stable: ' + v.stable : ''}${v.note ? ' · ' + v.note : ''}` : '';
+    o.textContent = ['# ' + r.note, line('create', r.create), line('claim', r.claim), line('keys', r.keys), line('holders', r.holders)].filter(Boolean).join('\n');
+  });
+})();
+</script>
+</body>
+</html>

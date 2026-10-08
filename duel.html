@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0c0b">
+<link rel="icon" href="/assets/img/fav32.png" sizes="32x32"><link rel="icon" href="/assets/img/fav64.png" sizes="64x64"><link rel="apple-touch-icon" href="/assets/img/fav180.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="vrsus"><meta property="og:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://vrsus.vercel.app/assets/img/og.jpg">
+<link rel="preload" href="/assets/fonts/jbm.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/v.css?v=9">
+<script>window.VRSUS_CONFIG = { ca: '', x: '' };</script>
+
+<title>vrsus · duel</title>
+<meta name="description" content="A vrsus duel: one real event, a YES coin and a NO coin, one pot. The rule, the source, the pot, every payout and how to verify it.">
+<meta property="og:title" content="vrsus · a duel">
+</head>
+<body data-page="duel">
+<header class="top">
+  <a class="logo" href="/" aria-label="vrsus home"><span class="wn"><span class="v1">vr</span>s<span class="v2">us</span><i>_</i></span></a>
+  <nav class="nav" aria-label="main">
+    <a href="/" data-nav="home">arena</a><a href="/#wire" data-nav="wire">wire</a><a href="/#card" data-nav="card">fight card</a><a href="/#term" data-nav="term">terminal</a><a href="/#proof" data-nav="proof">proofs</a><a href="/pair" data-nav="pair">pair</a><a href="/docs" data-nav="docs">docs</a>
+  </nav>
+  <div class="acts"><a class="br launchb" href="/pair"><span class="p">+</span> pair an event</a><button class="br" type="button" data-connect>connect</button></div>
+</header>
+<div class="tape" id="tape" aria-label="live duels"><div class="sys" id="sys" aria-live="off"><span class="dot" id="sysDot"></span><span class="eng">engine <b id="sysE">—</b></span><span>slot <b id="sysS">—</b></span></div><div class="in"><span class="it dim">reading the duels…</span><span class="sep">//</span><span class="it dim">reading the duels…</span><span class="sep">//</span></div></div>
+
+<main class="wrap">
+  <div id="none" class="empty" hidden style="padding-top:40px"></div>
+  <div id="duel" hidden>
+    <section class="arena" id="dHead"></section>
+    <section class="sec">
+      <div class="box"><div class="hd"><h2>LIFECYCLE</h2><div class="ctl"><span>every step, with its proof</span></div></div>
+        <div class="bd"><div class="life" id="dLife"></div></div></div>
+    </section>
+    <section class="sec" id="tapeSec">
+      <div class="box"><div class="hd"><h2>THE TAPE</h2><div class="ctl"><span class="tabs" id="tpTabs" style="margin:0"><button class="br sm on" type="button" data-h="6">6h</button><button class="br sm" type="button" data-h="24">24h</button><button class="br sm" type="button" data-h="0">all</button></span></div></div>
+        <div class="bd"><pre class="plot" id="dPlot" aria-label="chart"></pre><div class="legend" id="dLeg"></div><div id="dPx"></div><div class="edge" id="dEdge"></div></div></div>
+    </section>
+    <section class="sec">
+      <div class="box"><div class="hd"><h2>THE SOURCE</h2><div class="ctl"><button class="br sm" type="button" id="readGo">read the source now</button></div></div>
+        <div class="bd"><div id="dRule"></div><div id="dRead" style="margin-top:12px"></div><div class="code" id="dEvidence" style="margin-top:12px" hidden></div></div></div>
+    </section>
+    <section class="sec">
+      <div class="box"><div class="hd"><h2>THE POT</h2><div class="ctl"><span>one wallet, creator of both coins</span></div></div>
+        <div class="bd">
+          <div class="stats" id="dPot"></div>
+          <div class="addr" style="margin-top:14px"><span class="dim">wallet</span><code id="dWal"></code><button class="br sm" type="button" id="dWalCp">copy</button><a class="br sm" id="dWalScan" target="_blank" rel="noopener">solscan</a></div>
+          <p class="sub" style="margin:12px 0 0">Both coins pay their pump.fun creator fees to this wallet. The engine claims them every minute (vrsus keeps 5% of each claim). A reserve of <span id="dRes">0.015</span> SOL stays for the payout transactions.</p>
+        </div></div>
+    </section>
+    <section class="sec" id="rounds">
+      <div class="box verify"><div class="hd"><h2>PAYOUT ROUNDS</h2><div class="ctl"><span>every snapshot, its hash, every payout</span></div></div>
+        <div class="bd" id="dRounds"></div></div>
+    </section>
+    <section class="sec" id="bundle">
+      <div class="box"><div class="hd"><h2>VERIFY WITHOUT US</h2><div class="ctl"><a class="br sm" id="bDl" href="#" download>download the proof bundle</a></div></div>
+        <div class="bd">
+          <p class="sub" style="margin:0">The bundle is this duel’s whole record in one JSON file: the event, the rule, the reading it settled on, every snapshot with its hash and Merkle root, every payout and its transaction. <code>verify.mjs</code> checks it against the world: it re-reads the source itself, recomputes every split, hash and root, reads every payout back from the RPC you choose, and checks that both coins’ pump.fun creator is the duel wallet. No dependencies, Node 18 or newer.</p>
+          <div class="cmdline"><span class="ps">$</span><code id="bCmd"></code><button class="br sm" type="button" id="bCp">copy</button></div>
+        </div></div>
+    </section>
+    <section class="sec">
+      <div class="box"><div class="hd"><h2>LOG</h2><div class="ctl"><span>every step, with its transaction</span></div></div>
+        <div class="bd"><div class="feed" id="dLog"></div></div></div>
+    </section>
+  </div>
+  <div style="height:60px"></div>
+</main>
+<script src="/assets/js/vrsus.js?v=9"></script>
+<script src="/assets/js/core.js?v=9"></script>
+<script>window.VS_ART = { vs: "<span class=\"fi\">##</span><span class=\"s\">\\</span>    <span class=\"fi\">##</span><span class=\"s\">\\</span>  <span class=\"fi\">#######</span><span class=\"s\">\\</span>\n<span class=\"s\">\\</span><span class=\"fi\">##</span><span class=\"s\">\\</span>  <span class=\"fi\">##</span>  <span class=\"s\">|</span><span class=\"fi\">##</span>  <span class=\"s\">_____|</span>\n <span class=\"s\">\\</span><span class=\"fi\">##</span><span class=\"s\">\\</span><span class=\"fi\">##</span>  <span class=\"s\">/</span> <span class=\"s\">\\</span><span class=\"fi\">######</span><span class=\"s\">\\</span>\n  <span class=\"s\">\\</span><span class=\"fi\">###</span>  <span class=\"s\">/</span>   <span class=\"s\">\\____</span><span class=\"fi\">##</span><span class=\"s\">\\</span>\n   <span class=\"s\">\\</span><span class=\"fi\">#</span>  <span class=\"s\">/</span>   <span class=\"fi\">#######</span>  <span class=\"s\">|</span>\n    <span class=\"s\">\\_/</span>    <span class=\"s\">\\_______/</span>" };</script>
+<script src="/assets/js/proof.js?v=9"></script>
+<script src="/assets/js/duel.js?v=9"></script>
+</body>
+</html>
