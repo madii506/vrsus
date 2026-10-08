@@ -595,3 +595,15 @@ section.sec:nth-of-type(odd) { --band: rgba(10, 12, 11, .55); }
 @media (max-width: 640px) { .box > .hd h2 { font-size: 21px; } .arena .q { font-size: 21px; } }
 body[data-page=pair] .box > .hd h2::before, body[data-page=docs] .box > .hd h2::before { content: none; }
 @media (max-width: 640px) { .arena .wm { font-size: 6px !important; } }
+
+/* ===== v3.1: blacker, drippier, flickering ===== */
+:root { --paper: #000; --paper2: #070908; }
+html { background: #000; }
+section.sec:nth-of-type(even) { --band: rgba(255, 255, 255, .012); }
+section.sec:nth-of-type(odd) { --band: transparent; }
+.box, .ring .sd, .ring .mid { background-color: transparent; }
+.ring .sd.y { background: rgba(79, 191, 124, .045); } .ring .sd.n { background: rgba(255, 107, 74, .045); }
+.flick { position: fixed; inset: 0; z-index: 90; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 3px); mix-blend-mode: screen; animation: flick 5.3s steps(1) infinite; }
+@keyframes flick { 0% { opacity: .7; } 7% { opacity: .35; } 8% { opacity: .8; } 31% { opacity: .55; } 32% { opacity: .9; } 33% { opacity: .6; } 58% { opacity: .75; } 71% { opacity: .2; } 72% { opacity: .85; } 90% { opacity: .65; } }
+.arena .tape { background: rgba(0, 0, 0, .7); box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .7); }
+@media (prefers-reduced-motion: reduce) { .flick { animation: none; opacity: .5; } }
