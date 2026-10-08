@@ -135,17 +135,20 @@ async function coinMarket(mint) {
 // ---------- the wire: what just happened in the world, from the same three sources, newest first ----------
 // new Polymarket markets (breaking news opens a market within minutes), the biggest odds moves, games going live or final,
 // and sharp price moves. Every line links to its source, and every line that can still be paired carries the event to pair.
-const NOISE = /up or down|\b\d{1,2}(:\d{2})?\s?(am|pm)\s?(et|est|edt|utc)?\b|o\/u|over\/under|spread|handicap|total (points|goals|kills|runs)|\bvs\.?\s|map \d|game \d|set \d|\bto score\b|anytime|first (goal|half)|1st half|2nd half/i;
+const NOISE = /\b\d{2,}\s?-\s?\d{2,}\b|tweets|\b(bitcoin|ethereum|solana|xrp|btc|eth|sol)\b.*\b(above|below|between|reach|dip|hit)\b.*\$[\d,.]+[k]?\b.*\bon (january|february|march|april|may|june|july|august|september|october|november|december) \d|up or down|\b\d{1,2}(:\d{2})?\s?(am|pm)\s?(et|est|edt|utc)?\b|o\/u|over\/under|spread|handicap|total (points|goals|kills|runs)|\bvs\.?\s|map \d|game \d|set \d|\bto score\b|anytime|first (goal|half)|1st half|2nd half/i;
 const pmEv = m => ({ kind: 'pm', market: { id: m.id, q: m.q, slug: m.slug, cat: null } });
 async function wire() {
   return L.remember('wire', 40000, async () => {
-    const t = Date.now(), items = [], health = {};
+    const t = Date.now(), items = [], health = {}, diag = {};
     const ok = (k, v) => { health[k] = v; };
     const pmUsable = m => m && m.q && !NOISE.test(m.q) && m.yes >= 3 && m.yes <= 97 && (() => { const e = m.end ? new Date(m.end).getTime() : NaN; return isFinite(e) && e > t + 36e5 && e < t + 400 * 864e5; })();
     await Promise.all([
       (async () => {   // newest markets: market ids only grow, so the highest ids are the newest
-        const r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=id&ascending=false&limit=100`, {}, 8000);
-        const arr = Array.isArray(r.json) ? r.json : []; ok('polymarket:new', arr.length > 0);
+        const since = new Date(t - 72 * 36e5).toISOString();
+        let r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&start_date_min=${encodeURIComponent(since)}&order=startDate&ascending=false&limit=200`, {}, 8000);
+        if (!Array.isArray(r.json) || !r.json.length) r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=id&ascending=false&limit=200`, {}, 8000);
+        const arr = (Array.isArray(r.json) ? r.json : []).slice().sort((a, b) => new Date(b.createdAt || b.startDate || 0) - new Date(a.createdAt || a.startDate || 0));
+        ok('polymarket:new', arr.length > 0); diag.newRaw = arr.length; diag.newest = arr[0] ? (arr[0].createdAt || arr[0].startDate || null) : null;
         let n = 0;
         for (const raw of arr) {
           const m = mkt(raw); if (!pmUsable(m)) continue;
@@ -153,6 +156,7 @@ async function wire() {
           items.push({ t: new Date(Math.min(born, t)).toISOString(), kind: 'new', src: 'polymarket', head: m.q, sub: `new market · YES ${m.yes}%${m.vol ? ' · $' + Math.round(m.vol).toLocaleString('en-US') + ' traded' : ''} · ends ${V.when(m.end).slice(0, 10)}`, link: m.src, pair: pmEv(m) });
           if (++n >= 10) break;
         }
+        diag.newKept = n;
       })(),
       (async () => {   // the biggest odds moves among the busiest markets
         const r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=volume24hr&ascending=false&limit=150`, {}, 8000);
@@ -192,7 +196,7 @@ async function wire() {
     // keep the wire readable: a cap per kind so one league or one source can't flood it
     const cap = { new: 10, move: 8, live: 10, final: 8, soon: 8, px: 3 }, seen = {}, out = [];
     for (const x of items) { seen[x.kind] = (seen[x.kind] || 0) + 1; if (seen[x.kind] <= cap[x.kind]) out.push(x); }
-    return { ok: out.length > 0, items: out.slice(0, 40), health, at: new Date(t).toISOString() };
+    return { ok: out.length > 0, items: out.slice(0, 40), health, diag, at: new Date(t).toISOString() };
   });
 }
 
