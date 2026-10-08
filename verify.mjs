@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // verify.mjs: check a vrsus duel without trusting vrsus.
 //
-//   node verify.mjs <duel-id> [--site https://vrsus.vercel.app] [--rpc <any Solana RPC>] [--bundle <file.json>]
+//   node verify.mjs <duel-id> [--site https://vrsus-seven.vercel.app] [--rpc <any Solana RPC>] [--bundle <file.json>]
 //
 // It downloads the duel's proof bundle (or reads one you saved), then checks it against the world on its own:
 //   1. the event   re-reads the source itself (Polymarket, ESPN or Coinbase) and applies the published rule
@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 
 const argv = process.argv.slice(2), opt = {}, pos = [];
 for (let i = 0; i < argv.length; i++) { if (argv[i].startsWith('--')) opt[argv[i].slice(2)] = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true; else pos.push(argv[i]); }
-const SITE = String(opt.site || 'https://vrsus.vercel.app').replace(/\/$/, ''), RPC = String(opt.rpc || 'https://api.mainnet-beta.solana.com');
+const SITE = String(opt.site || 'https://vrsus-seven.vercel.app').replace(/\/$/, ''), RPC = String(opt.rpc || 'https://api.mainnet-beta.solana.com');
 if (!pos[0] && !opt.bundle) { console.log('usage: node verify.mjs <duel-id> [--site URL] [--rpc URL] [--bundle file.json]'); process.exit(2); }
 
 const tty = process.stdout.isTTY, c = (n, s) => (tty ? `\x1b[${n}m${s}\x1b[0m` : s);
