@@ -3,7 +3,6 @@
   const { $, $$, esc, api, post, sol, toast, short, day, usd } = VR;
   const V = window.VS;
   VR.typePrompt($('#prompt'), 'pair an event'); VR.tape(); VR.nudge();
-  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === 'pair'));
   VR.coinArt($('#pvY'), 'yes'); VR.coinArt($('#pvN'), 'no');
 
   let CFG = { createSol: 0.03, reserveSol: 0.015, minDev: 0.01, maxDev: 5, feeBps: 500, open: true };

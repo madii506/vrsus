@@ -230,6 +230,18 @@
     else el.remove();
   }
 
+  // ---------- the rail: which round you're in, and the menu on small screens ----------
+  function rail() {
+    const r = $('#rail'), go = $('#railGo'); if (!r) return;
+    if (go) go.addEventListener('click', () => { const o = r.classList.toggle('open'); go.setAttribute('aria-expanded', o); go.textContent = o ? 'close' : 'menu'; document.documentElement.style.overflow = o ? 'hidden' : ''; });
+    r.addEventListener('click', e => { if (e.target.closest('a') && r.classList.contains('open')) { r.classList.remove('open'); if (go) { go.textContent = 'menu'; go.setAttribute('aria-expanded', 'false'); } document.documentElement.style.overflow = ''; } });
+    const page = document.body.dataset.page, links = $$('.rounds a');
+    if (page !== 'home') { links.forEach(a => a.classList.toggle('on', a.dataset.nav === page)); return; }
+    const pairs = links.filter(a => a.dataset.to).map(a => [a, document.getElementById(a.dataset.to)]).filter(x => x[1]);
+    const spy = () => { let cur = pairs[0]; for (const p of pairs) if (p[1].getBoundingClientRect().top < innerHeight * .35) cur = p; links.forEach(a => a.classList.toggle('on', cur && a === cur[0])); };
+    addEventListener('scroll', spy, { passive: true }); spy();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rail); else rail();
   const day = t => t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '—';
   const num = n => n == null ? '—' : Number(n).toLocaleString('en-US');
 
@@ -249,7 +261,7 @@
     paintEngine();
   }
   function paintEngine() { const el = $('#sysE'); if (el) el.textContent = STATS && STATS.lastTick ? ago(STATS.lastTick) : STATS && STATS.offline ? 'offline' : '—'; }
-  function startSys() { if (!$('#sys')) return; pollChain(); pollStats(); setInterval(pollChain, 5000); setInterval(pollStats, 20000); setInterval(paintEngine, 1000); }
+  function startSys() { if (!$('#sys') && !$('#system')) return; pollChain(); pollStats(); setInterval(pollChain, 5000); setInterval(pollStats, 20000); setInterval(paintEngine, 1000); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startSys); else startSys();
 
   // ---------- hashing and the chain, from the browser ----------

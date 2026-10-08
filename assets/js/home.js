@@ -4,7 +4,6 @@
   const V = window.VS;
   VR.typePrompt($('#prompt'), 'every event is two coins');
   VR.caStrip($('#ca')); VR.tape(); VR.reveal(); VR.nudge();
-  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === 'home'));
   const enc = o => encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(o)))));
   const VSART = (window.VS_ART && window.VS_ART.vs) || 'vs';
 
