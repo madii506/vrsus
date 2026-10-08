@@ -2,7 +2,6 @@
 (function () {
   const { $, $$, esc, api, usd, sol, ago, hhmm, day } = VR;
   const V = window.VS;
-  VR.typePrompt($('#prompt'), 'every event is two coins');
   VR.caStrip($('#ca')); VR.tape(); VR.reveal(); VR.nudge();
   const enc = o => encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(o)))));
   const VSART = (window.VS_ART && window.VS_ART.vs) || 'vs';
@@ -37,19 +36,13 @@
     $$('#arenaBd [data-coin]').forEach(p => VR.coinArt(p, p.dataset.coin));
   }
   $('#arenaBd').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; featured = DUELS.find(d => d.id === b.dataset.f) || featured; paintArena(); });
-  // no duel yet: the busiest real event on Polymarket, with both sides open
-  async function nextFight() {
-    const r = await api('/api/events?op=world&cat=politics');
-    const m = r && r.ok && r.markets[0];
-    if (!m) { $('#arenaBd').innerHTML = '<div class="empty">No duels yet, and the odds feed is offline right now. <a class="u" href="/pair">pair an event</a>.</div>'; return; }
-    const d = { q: m.q, yes: null, no: null };
+  // no duel yet: the ring is open, both sides empty; events to pair live on the wire, the board and the pair page
+  function nextFight() {
+    const d = { yes: null, no: null };
     $('#arenaBd').innerHTML = `
-      <div class="kick" style="margin:0 0 6px"><span class="chip">THE NEXT FIGHT</span> <span class="dim">no duels yet · this is the busiest open market on Polymarket right now</span></div>
-      <h2 class="q"><a href="${esc(m.src)}" target="_blank" rel="noopener">${esc(m.q)}</a></h2>
-      <div class="rl2">${esc(V.describe({ kind: 'pm', market: m }).rule)}</div>
+      <div class="kick" style="margin:0 0 6px"><span class="chip">THE RING IS OPEN</span> <span class="dim">no duels running yet</span></div>
       <div class="ring">${side(d, 'yes')}<div class="mid"><pre aria-hidden="true">${VSART}</pre><span class="k">the pot</span><span class="pv">—</span><span class="s">fills once both coins trade</span></div>${side(d, 'no')}</div>
-      <div class="under"><div><div class="tg">${VR.tug(m.yes, innerWidth < 640 ? 24 : 44)}</div><div class="od">polymarket: ${m.yes}% YES · ends ${day(m.end)}</div></div>
-        <div class="rd"><a class="btn" href="/pair#e=${enc({ kind: 'pm', market: { id: m.id, q: m.q, slug: m.slug, cat: m.cat } })}">pair this event <span class="k">-&gt;</span></a></div></div>`;
+      <div class="opencta"><a class="btn" href="/pair">pair an event <span class="k">-&gt;</span></a><a class="br" href="#wire">see what’s happening</a></div>`;
     $$('#arenaBd [data-coin]').forEach(p => VR.coinArt(p, p.dataset.coin));
   }
 

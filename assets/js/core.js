@@ -204,12 +204,19 @@
   function nudge() { try { if (!sessionStorage.getItem('vrsus:n')) { sessionStorage.setItem('vrsus:n', '1'); fetch('/api/tick', { keepalive: true }).catch(() => {}); } } catch {} }
 
   // reveal on scroll, with a sweep so anchor jumps never leave sections hidden
+  function typeHead(h) {
+    if (!h || h.dataset.typed) return; h.dataset.typed = '1'; if (RM()) return;
+    const full = h.textContent; h.setAttribute('aria-label', full); h.textContent = ''; let i = 0;
+    const go = () => { h.textContent = full.slice(0, ++i); if (i < full.length) setTimeout(go, 34); }; setTimeout(go, 260);
+  }
+  function show(e) { if (e.classList.contains('vis')) return; e.classList.add('vis'); $$('.box > .hd h2', e).forEach(typeHead); }
   function reveal() {
-    const els = $$('.rv'); if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('vis')); return; }
-    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('vis'); io.unobserve(x.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .04 });
+    $$('section.sec:not(.rv)').forEach(e => e.classList.add('rv'));
+    const els = $$('.rv'); if (!('IntersectionObserver' in window)) { els.forEach(show); return; }
+    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { show(x.target); io.unobserve(x.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .04 });
     els.forEach(e => io.observe(e));
-    const sweep = () => els.forEach(e => { if (e.getBoundingClientRect().top < innerHeight) e.classList.add('vis'); });
-    addEventListener('hashchange', sweep); addEventListener('scroll', sweep, { passive: true }); setTimeout(sweep, 60);
+    const sweep = () => els.forEach(e => { if (e.offsetParent !== null && e.getBoundingClientRect().top < innerHeight) show(e); });
+    addEventListener('hashchange', sweep); addEventListener('scroll', sweep, { passive: true }); setTimeout(sweep, 60); setInterval(sweep, 1500);
   }
   function typePrompt(el, text) {
     if (!el) return; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -237,6 +244,57 @@
     addEventListener('scroll', spy, { passive: true }); spy();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rail); else rail();
+
+  // ---------- motion while scrolling: a progress seam, a sliding rail marker, the arena splitting apart ----------
+  function scrollFx() {
+    const bar = document.createElement('div'); bar.className = 'prog2'; bar.setAttribute('aria-hidden', 'true'); bar.innerHTML = '<i></i>'; document.body.appendChild(bar);
+    const fill = bar.firstChild, rounds = $('.rounds'); let ind = null;
+    if (rounds) { ind = document.createElement('span'); ind.className = 'ind'; ind.setAttribute('aria-hidden', 'true'); rounds.appendChild(ind); }
+    const moveInd = () => { if (!ind) return; const a = $('.rounds a.on'); if (!a) { ind.style.opacity = 0; return; } ind.style.opacity = 1; ind.style.transform = `translateY(${a.offsetTop}px)`; ind.style.height = a.offsetHeight + 'px'; };
+    let ticking = false;
+    const run = () => {
+      ticking = false;
+      const h = document.documentElement.scrollHeight - innerHeight; fill.style.transform = `scaleX(${h > 0 ? Math.min(1, scrollY / h) : 0})`;
+      moveInd();
+      if (RM()) return;
+      const ar = $('.arena'); if (!ar) return;
+      const r = ar.getBoundingClientRect(), p = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height * .8)));
+      const y = $('.arena .ring .sd.y'), n = $('.arena .ring .sd.n'), m = $('.arena .ring .mid'), wm = $('.arena .wm');
+      if (y) y.style.transform = p ? `translateX(${(-p * 70).toFixed(1)}px)` : ''; if (n) n.style.transform = p ? `translateX(${(p * 70).toFixed(1)}px)` : '';
+      if (m) { m.style.opacity = p ? (1 - p * .85).toFixed(3) : ''; m.style.transform = p ? `scale(${(1 - p * .12).toFixed(3)})` : ''; }
+      if (wm) wm.style.transform = p ? `translateY(${(p * 46).toFixed(1)}px)` : '';
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(run); } };
+    addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); run(); setTimeout(run, 400);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scrollFx); else scrollFx();
+
+  // ---------- keys: j / k jump between rounds, / opens the terminal, g goes to the top ----------
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target, tag = (t.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select' || t.isContentEditable) return;
+    const beh = RM() ? 'auto' : 'smooth';
+    if (e.key === 'j' || e.key === 'k') {
+      const secs = $$('main .arena, main section.sec').filter(x => x.offsetParent !== null); if (!secs.length) return; e.preventDefault();
+      const tops = secs.map(x => x.getBoundingClientRect().top); let i = -1;
+      if (e.key === 'j') i = tops.findIndex(v => v > 40); else tops.forEach((v, k) => { if (v < -40) i = k; });
+      if (i >= 0) secs[i].scrollIntoView({ behavior: beh, block: 'start' }); else if (e.key === 'k') scrollTo({ top: 0, behavior: beh });
+    } else if (e.key === '/') {
+      e.preventDefault(); const tin = $('#tIn');
+      if (!tin) { location.href = '/#term'; return; }
+      $('#term').scrollIntoView({ behavior: beh, block: 'center' }); setTimeout(() => tin.focus({ preventScroll: true }), 450);
+    } else if (e.key === 'g') { scrollTo({ top: 0, behavior: beh }); }
+  });
+
+  // ---------- page transitions: the page slides out before the next one loads ----------
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]'); if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank' || a.hasAttribute('download')) return;
+    const u = new URL(a.href, location.href); if (u.origin !== location.origin || /^\/api\//.test(u.pathname) || /\.(mjs|json|png|jpg)$/.test(u.pathname)) return;
+    if (u.pathname === location.pathname && u.search === location.search) return;   // an anchor on this page: let it scroll
+    if (RM()) return;
+    e.preventDefault(); document.documentElement.classList.add('leaving'); setTimeout(() => { location.href = u.href; }, 200);
+  });
+  addEventListener('pageshow', () => document.documentElement.classList.remove('leaving'));
   const day = t => t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '—';
   const num = n => n == null ? '—' : Number(n).toLocaleString('en-US');
 
