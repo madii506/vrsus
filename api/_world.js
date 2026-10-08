@@ -144,27 +144,35 @@ async function wire() {
     const pmUsable = m => m && m.q && !NOISE.test(m.q) && m.yes >= 3 && m.yes <= 97 && (() => { const e = m.end ? new Date(m.end).getTime() : NaN; return isFinite(e) && e > t + 36e5 && e < t + 400 * 864e5; })();
     await Promise.all([
       (async () => {   // newest markets: market ids only grow, so the highest ids are the newest
-        const since = new Date(t - 72 * 36e5).toISOString();
-        let r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&start_date_min=${encodeURIComponent(since)}&order=startDate&ascending=false&limit=200`, {}, 8000);
-        if (!Array.isArray(r.json) || !r.json.length) r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=id&ascending=false&limit=200`, {}, 8000);
-        const arr = (Array.isArray(r.json) ? r.json : []).slice().sort((a, b) => new Date(b.createdAt || b.startDate || 0) - new Date(a.createdAt || a.startDate || 0));
-        ok('polymarket:new', arr.length > 0); diag.newRaw = arr.length; diag.newest = arr[0] ? (arr[0].createdAt || arr[0].startDate || null) : null;
+        // new events: breaking news opens a new Polymarket event within minutes; take each new event's best open market
+        const since = new Date(t - 96 * 36e5).toISOString();
+        const r = await L.getJson(`${GAMMA}/events?active=true&closed=false&start_date_min=${encodeURIComponent(since)}&order=startDate&ascending=false&limit=200`, {}, 9000);
+        const evs = Array.isArray(r.json) ? r.json : [];
+        ok('polymarket:new', evs.length > 0); diag.newRaw = evs.length;
+        const cand = [];
+        for (const ev of evs) {
+          if (NOISE.test(ev.title || '')) continue;
+          const ms = (ev.markets || []).filter(m => !m.closed && m.active !== false).map(m => ({ m: mkt(m, ev), raw: m })).filter(x => pmUsable(x.m)).sort((x, y) => y.m.vol - x.m.vol);
+          if (!ms.length) continue;
+          const born = new Date(ev.createdAt || ev.startDate || ms[0].raw.createdAt || 0).getTime(); if (!(born > t - 96 * 36e5)) continue;
+          cand.push({ born, m: ms[0].m, vol: Number(ev.volume24hr || ev.volume || 0) });
+        }
+        cand.sort((x, y) => y.born - x.born);
         let n = 0;
-        for (const raw of arr) {
-          const m = mkt(raw); if (!pmUsable(m)) continue;
-          const born = new Date(raw.createdAt || raw.startDate || 0).getTime(); if (!(born > t - 72 * 36e5)) continue;
-          items.push({ t: new Date(Math.min(born, t)).toISOString(), kind: 'new', src: 'polymarket', head: m.q, sub: `new market · YES ${m.yes}%${m.vol ? ' · $' + Math.round(m.vol).toLocaleString('en-US') + ' traded' : ''} · ends ${V.when(m.end).slice(0, 10)}`, link: m.src, pair: pmEv(m) });
+        for (const c of cand) {
+          const m = c.m;
+          items.push({ t: new Date(Math.min(c.born, t)).toISOString(), kind: 'new', src: 'polymarket', head: m.q, sub: `new market · YES ${m.yes}%${c.vol ? ' · $' + Math.round(c.vol).toLocaleString('en-US') + ' traded' : ''} · ends ${V.when(m.end).slice(0, 10)}`, link: m.src, pair: pmEv(m) });
           if (++n >= 10) break;
         }
         diag.newKept = n;
       })(),
       (async () => {   // the biggest odds moves among the busiest markets
-        const r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=volume24hr&ascending=false&limit=150`, {}, 8000);
+        const r = await L.getJson(`${GAMMA}/markets?active=true&closed=false&order=volume24hr&ascending=false&limit=300`, {}, 9000);
         const arr = Array.isArray(r.json) ? r.json : []; ok('polymarket:moves', arr.length > 0);
         const mv = arr.map(raw => ({ m: mkt(raw), h: Number(raw.oneHourPriceChange) || 0, d: Number(raw.oneDayPriceChange) || 0 }))
-          .filter(x => pmUsable(x.m) && (Math.abs(x.h) >= .03 || Math.abs(x.d) >= .08)).sort((a, b) => (Math.abs(b.h) * 3 + Math.abs(b.d)) - (Math.abs(a.h) * 3 + Math.abs(a.d))).slice(0, 8);
+          .filter(x => pmUsable(x.m) && (Math.abs(x.h) >= .02 || Math.abs(x.d) >= .05)).sort((a, b) => (Math.abs(b.h) * 3 + Math.abs(b.d)) - (Math.abs(a.h) * 3 + Math.abs(a.d))).slice(0, 8);
         for (const x of mv) {
-          const big = Math.abs(x.h) >= .03 ? x.h : x.d, win = Math.abs(x.h) >= .03 ? '1h' : '24h', pts = Math.round(Math.abs(big) * 1000) / 10;
+          const big = Math.abs(x.h) >= .02 ? x.h : x.d, win = Math.abs(x.h) >= .02 ? '1h' : '24h', pts = Math.round(Math.abs(big) * 1000) / 10;
           items.push({ t: new Date(t).toISOString(), kind: 'move', src: 'polymarket', dir: big > 0 ? 'up' : 'dn', head: x.m.q, sub: `odds ${big > 0 ? 'up' : 'down'} ${pts} pts in ${win} · now YES ${x.m.yes}%`, link: x.m.src, pair: pmEv(x.m), w: Math.abs(big) });
         }
       })(),
@@ -175,7 +183,7 @@ async function wire() {
           const g = gameRow(ev, lg); if (!g) continue; const at = new Date(g.date).getTime();
           if (g.state === 'in') items.push({ t: new Date(t).toISOString(), kind: 'live', src: 'espn', head: `${g.home.name} ${g.hs}–${g.as} ${g.away.name}`, sub: `${lg.name} · live · ${g.detail}`, link: g.link });
           else if (g.state === 'post' && g.completed && at > t - 14 * 36e5) items.push({ t: new Date(Math.min(t, at + 2 * 36e5)).toISOString(), kind: 'final', src: 'espn', head: `${g.home.name} ${g.hs}–${g.as} ${g.away.name}`, sub: `${lg.name} · final${g.hw ? ' · ' + g.home.short + ' win' : g.aw ? ' · ' + g.away.short + ' win' : ' · draw'}`, link: g.link });
-          else if (g.state === 'pre' && at > t + 15 * 6e4 && at < t + 8 * 36e5) items.push({ t: new Date(t).toISOString(), kind: 'soon', src: 'espn', head: `${g.away.name} at ${g.home.name}`, sub: `${lg.name} · starts ${V.when(g.date).slice(11)}`, link: g.link, at: g.date,
+          else if (g.state === 'pre' && at > t + 15 * 6e4 && at < t + 30 * 36e5) items.push({ t: new Date(t).toISOString(), kind: 'soon', src: 'espn', head: `${g.away.name} at ${g.home.name}`, sub: `${lg.name} · starts ${V.when(g.date).slice(5)}`, link: g.link, at: g.date,
             pair: { kind: 'game', league: lg.id, gameId: g.gameId, home: g.home, away: g.away, date: g.date, link: g.link } });
         }
       })()),
