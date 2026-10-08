@@ -248,20 +248,20 @@
   // ---------- the status cell in the tape: the engine's last pass and the chain's slot, both read live ----------
   let CHAIN = null, STATS = null;
   const chainSubs = [], statSubs = [];
-  async function pollChain() {
-    if (document.hidden) return;
+  async function pollChain(force) {
+    if (document.hidden && force !== true) return;
     const c = await api('/api/events?op=chain');
     if (c && c.ok) { const prev = CHAIN; CHAIN = c; const el = $('#sysS'); if (el) el.textContent = num(c.slot); chainSubs.forEach(f => f(c, prev)); }
     const d = $('#sysDot'); if (d) d.classList.toggle('off', !(c && c.ok));
   }
-  async function pollStats() {
-    if (document.hidden) return;
+  async function pollStats(force) {
+    if (document.hidden && force !== true) return;
     const s = await api('/api/duels?op=stats');
     if (s && s.ok) { STATS = s; statSubs.forEach(f => f(s)); }
     paintEngine();
   }
   function paintEngine() { const el = $('#sysE'); if (el) el.textContent = STATS && STATS.lastTick ? ago(STATS.lastTick) : STATS && STATS.offline ? 'offline' : '—'; }
-  function startSys() { if (!$('#sys') && !$('#system')) return; pollChain(); pollStats(); setInterval(pollChain, 5000); setInterval(pollStats, 20000); setInterval(paintEngine, 1000); }
+  function startSys() { if (!$('#sys') && !$('#system')) return; pollChain(true); pollStats(true); setInterval(pollChain, 5000); setInterval(pollStats, 20000); setInterval(paintEngine, 1000); document.addEventListener('visibilitychange', () => { if (!document.hidden) { pollChain(); pollStats(); } }); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startSys); else startSys();
 
   // ---------- hashing and the chain, from the browser ----------
