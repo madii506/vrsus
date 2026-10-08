@@ -51,7 +51,7 @@ async function world(cat) {
     const evs = Array.isArray(r.json) ? r.json : []; const t = Date.now(), list = [];
     for (const ev of evs) {
       const ms = (ev.markets || []).filter(m => !m.closed && m.active !== false && m.acceptingOrders !== false).map(m => mkt(m, ev, cat))
-        .filter(x => x && x.q && !/^(game|map|set|round|match) \d+\s*:/i.test(x.q) && x.yes >= 2 && x.yes <= 98)
+        .filter(x => x && x.q && !/^(game|map|set|round|match) \d+\s*:/i.test(x.q) && !NOISE.test(x.q) && x.yes >= 2 && x.yes <= 98)
         .filter(x => { const e = x.end ? new Date(x.end).getTime() : NaN; return isFinite(e) && e > t + 36e5 && e < t + 400 * 864e5; })
         .sort((a, b) => b.vol - a.vol);
       if (ms.length) list.push(...ms.slice(0, 2));
@@ -82,7 +82,7 @@ function gameRow(ev, lg) {
   const h = cs.find(c => c.homeAway === 'home') || cs[0], a = cs.find(c => c !== h); if (!h || !a) return null;
   const T = c => ({ id: String((c.team || {}).id || ''), name: (c.team || {}).displayName || (c.team || {}).name || '', short: (c.team || {}).shortDisplayName || '', abbr: (c.team || {}).abbreviation || '' });
   const link = ((ev.links || []).find(l => /gamecast|summary|boxscore/i.test((l.rel || []).join(' '))) || (ev.links || [])[0] || {}).href || `https://www.espn.com/${lg.sport}/game/_/gameId/${ev.id}`;
-  return { league: lg.id, leagueName: lg.name, gameId: String(ev.id), date: ev.date, state: st.state || '', status: st.name || '', completed: !!st.completed, detail: st.shortDetail || '',
+  return { league: lg.id, leagueName: lg.name, gameId: String(ev.id), date: ev.date || comp.date || comp.startDate || null, state: st.state || '', status: st.name || '', completed: !!st.completed, detail: st.shortDetail || '',
     home: T(h), away: T(a), hs: scoreOf(h), as: scoreOf(a), hw: h.winner === true, aw: a.winner === true, link };
 }
 // upcoming games in a league over the next week (the ones a duel can be paired to)
@@ -230,7 +230,7 @@ async function read(ev, fresh = true) {
         return { ok: true, outcome: homeWon ? 'YES' : 'NO', text: `final: ${g.home.name} ${g.hs}–${g.as} ${g.away.name}${draw ? ' (draw)' : ''}`, evidence };
       }
       if (/POSTPONED|DELAYED|SUSPENDED/i.test(g.status) && Date.now() - new Date(ev.date).getTime() > 14 * 864e5) return { ok: true, outcome: 'VOID', text: 'postponed and not played within 14 days', evidence };
-      return { ok: true, outcome: null, text: g.state === 'in' ? `live: ${g.home.name} ${g.hs}–${g.as} ${g.away.name} · ${g.detail}` : g.state === 'pre' ? `starts ${V.when(g.date)}` : (g.detail || g.status || 'not final yet'), evidence };
+      return { ok: true, outcome: null, text: g.state === 'in' ? `live: ${g.home.name} ${g.hs}–${g.as} ${g.away.name} · ${g.detail}` : g.state === 'pre' ? (g.date ? `starts ${V.when(g.date)}` : 'not started yet') : (g.detail || g.status || 'not final yet'), evidence };
     }
     if (ev.kind === 'price') {
       if (Date.now() < new Date(ev.at).getTime() + 60000) {

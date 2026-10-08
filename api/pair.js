@@ -25,7 +25,7 @@ async function checkEvent(ev) {
     const g = await WD.game(ev.league, ev.gameId);
     if (!g.ok) return 'ESPN didn’t answer. Try again in a moment.';
     if (g.state !== 'pre') return 'That game has already started.';
-    if (new Date(g.date).getTime() < Date.now() + 10 * 6e4) return 'That game starts in under 10 minutes.';
+    if (!g.date || !(new Date(g.date).getTime() > Date.now() + 10 * 6e4)) return 'That game starts in under 10 minutes.';
     ev.home = { id: g.home.id, name: g.home.name }; ev.away = { id: g.away.id, name: g.away.name }; ev.date = g.date; ev.link = g.link; ev.closes = g.date;
     return null;
   }
