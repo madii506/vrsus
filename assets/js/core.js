@@ -138,68 +138,63 @@
   }
 
 
-  // ---------- the living background: green trails on the YES half, red on the NO half, sparks and pings ----------
+  // ---------- the living background: pure black, ASCII drips running down from the top (green on the YES half, red on the NO half),
+  // drops that fall and splash, cells that flicker, and the odd neon stutter ----------
   function background() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.getElementById('bg')) return;
     const cv = document.createElement('canvas'); cv.id = 'bg'; cv.setAttribute('aria-hidden', 'true'); document.body.prepend(cv);
-    const x = cv.getContext('2d'); let W = 0, H = 0, dpr = 1, CW = 8.4, CH = 17, cols = 0, rows = 0;
-    const CH_TRAIL = '.:-=+*#', CH_SPARK = '.,:;+*o#%$@', CH_PING = ['.', '·', ':', '+'];
-    const INK = '200,214,206', PALE = '70,88,80', GREEN = '79,191,124', RED = '255,107,74', PG = '58,110,82', PR = '128,66,52', ACC = ['255,107,74', '79,191,124', '79,191,124', '255,107,74', '230,169,61'];
-    let trails = [], sparks = [], pings = [], mouse = [];
+    const fl = document.createElement('div'); fl.className = 'flick'; fl.setAttribute('aria-hidden', 'true'); document.body.appendChild(fl);
+    const x = cv.getContext('2d'); let W = 0, H = 0, dpr = 1, CW = 8.4, CH = 15, cols = 0, rows = 0;
+    const BODY = '|||:!;', TOP = ':.', HEAD = 'oO0@', DROP = '.,\'', SPARK = '.,:;+*o#%$@';
+    const G = '79,191,124', GH = '139,227,174', R = '255,107,74', RH = '255,160,130', INK = '200,214,206';
+    let drips = [], drops = [], splash = [], sparks = [], mouse = [], stutter = 0;
+    const rnd = (a, b) => a + Math.random() * (b - a), pick = s => s[Math.floor(Math.random() * s.length)];
+    const side = c => (c * CW < W / 2 ? 0 : 1);
+    function newDrip(any) { const c = Math.floor(Math.random() * cols); return { c, len: any ? rnd(0, rows * .3) : 0, max: Math.max(3, Math.floor(rnd(3, rows * (Math.random() < .2 ? .7 : .38)))), v: rnd(.02, .11), st: 'grow', hold: Math.floor(rnd(30, 140)), a: rnd(.3, .6), ch: Array.from({ length: rows + 2 }, () => pick(BODY)), head: pick(HEAD) }; }
     function size() {
       dpr = Math.min(1.5, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
       cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
       x.setTransform(dpr, 0, 0, dpr, 0, 0); x.font = '600 13px JBM, ui-monospace, monospace'; x.textBaseline = 'top';
       cols = Math.ceil(W / CW); rows = Math.ceil(H / CH);
-      const want = Math.max(8, Math.round(cols / (W < 700 ? 7 : 9)));
-      trails = Array.from({ length: want }, () => newTrail(true));
-    }
-    const rnd = (a, b) => a + Math.random() * (b - a);
-    const pick = s => s[Math.floor(Math.random() * s.length)];
-    function newTrail(anywhere) { return { c: Math.floor(Math.random() * cols), y: anywhere ? rnd(-rows, rows) : rnd(-20, -2), v: rnd(.12, .42), len: Math.floor(rnd(5, 15)), ch: [] }; }
-    function ping() {
-      // somewhere on the page, something just happened: a ring of dots spreads out and fades
-      pings.push({ x: rnd(.05, .95) * W, y: rnd(.08, .92) * H, r: 0, max: rnd(70, 170), c: pick(ACC), born: performance.now() });
-      if (pings.length > 6) pings.shift();
+      drips = Array.from({ length: Math.max(10, Math.round(cols / (W < 700 ? 4 : 5))) }, () => newDrip(true));
     }
     addEventListener('resize', size); size();
-    addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; if (Math.random() < .5) mouse.push({ c: Math.floor(e.clientX / CW), r: Math.floor(e.clientY / CH), life: 26, ch: pick(CH_SPARK) }); if (mouse.length > 40) mouse.shift(); }, { passive: true });
-    let last = 0, lastPing = 0;
+    addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; if (Math.random() < .5) mouse.push({ c: Math.floor(e.clientX / CW), r: Math.floor(e.clientY / CH), life: 26, ch: pick(SPARK) }); if (mouse.length > 40) mouse.shift(); }, { passive: true });
+    let last = 0;
     function frame(t) {
       requestAnimationFrame(frame);
       if (document.hidden || t - last < 42) return; last = t;
       x.clearRect(0, 0, W, H);
-      // trails fall down their column, bright head, fading tail
-      for (const tr of trails) {
-        tr.y += tr.v; if (Math.random() < .08 || tr.ch.length < tr.len) tr.ch.unshift(pick(CH_TRAIL)); tr.ch.length = Math.min(tr.ch.length, tr.len);
-        for (let i = 0; i < tr.ch.length; i++) {
-          const ry = Math.floor(tr.y) - i; if (ry < 0 || ry > rows) continue;
-          const a = i === 0 ? .62 : .5 * (1 - i / tr.len);
-          x.fillStyle = `rgba(${i === 0 ? (tr.c * CW < W / 2 ? GREEN : RED) : (tr.c * CW < W / 2 ? PG : PR)},${a})`; x.fillText(tr.ch[i], tr.c * CW, ry * CH);
+      // the neon stutter: now and then the whole field drops out for a frame or two
+      if (stutter > 0) stutter--; else if (Math.random() < .012) stutter = Math.random() < .5 ? 1 : 3;
+      x.globalAlpha = stutter ? rnd(.15, .45) : rnd(.88, 1);
+      // drips: grow down from the top edge, swell, let go of a drop, then fade
+      for (const d of drips) {
+        const s = side(d.c), body = s ? R : G, hot = s ? RH : GH;
+        if (d.st === 'grow') { d.len += d.v * (1 + Math.random()); if (d.len >= d.max) d.st = 'hold'; }
+        else if (d.st === 'hold') { if (--d.hold <= 0) { drops.push({ c: d.c, y: d.len + 1, vy: .25, s }); d.st = 'fade'; } }
+        else { d.a -= .012; if (d.a <= 0) { Object.assign(d, newDrip(false)); continue; } }
+        if (Math.random() < .06) d.ch[Math.floor(Math.random() * d.len)] = pick(BODY);
+        const n = Math.floor(d.len);
+        for (let i = 0; i <= n; i++) {
+          const k = i / Math.max(1, n), a = d.a * (i < 2 ? .35 : .25 + .55 * k);
+          x.fillStyle = `rgba(${body},${a})`; x.fillText(i < 2 ? TOP[i] : d.ch[i], d.c * CW, i * CH);
         }
-        if (tr.y - tr.len > rows) Object.assign(tr, newTrail(false));
+        if (n > 0 && d.st !== 'fade') { x.fillStyle = `rgba(${hot},${Math.min(1, d.a + .25)})`; x.fillText(d.st === 'hold' && d.hold < 25 ? 'O' : d.head, d.c * CW, (n + 1) * CH); }
       }
-      // sparks: single cells that re-roll their character and die
-      if (sparks.length < Math.round(cols * rows / 170)) sparks.push({ c: Math.floor(Math.random() * cols), r: Math.floor(Math.random() * rows), life: Math.floor(rnd(8, 54)), ch: pick(CH_SPARK) });
-      sparks = sparks.filter(s => s.life-- > 0);
-      for (const s of sparks) { if (Math.random() < .3) s.ch = pick(CH_SPARK); x.fillStyle = `rgba(${INK},${Math.min(.22, s.life / 90)})`; x.fillText(s.ch, s.c * CW, s.r * CH); }
-      // pings: rings snapped to the character grid
-      if (t - lastPing > 1100) { lastPing = t; ping(); }
-      pings = pings.filter(p => (t - p.born) < 2600 && t >= p.born);
-      for (const p of pings) {
-        const k = (t - p.born) / 2600, r = p.max * (1 - Math.pow(1 - k, 3)), a = .62 * (1 - k);
-        const n = Math.max(8, Math.floor(r / 6)), seen = new Set();
-        x.fillStyle = `rgba(${p.c},${a})`;
-        for (let i = 0; i < n; i++) {
-          const ang = i / n * Math.PI * 2, cx = Math.round((p.x + Math.cos(ang) * r) / CW), cy = Math.round((p.y + Math.sin(ang) * r * .55) / CH);
-          const key = cx + ':' + cy; if (seen.has(key)) continue; seen.add(key);
-          x.fillText(CH_PING[(i + Math.max(0, Math.floor(k * 8))) % CH_PING.length], cx * CW, cy * CH);
-        }
-        if (k < .35) { x.fillStyle = `rgba(${p.c},${.7 * (1 - k / .35)})`; x.fillText('@', Math.round(p.x / CW) * CW, Math.round(p.y / CH) * CH); }
-      }
+      // drops fall with gravity and splash at the bottom
+      drops = drops.filter(p => { p.vy = Math.min(2.2, p.vy + .09); p.y += p.vy; if (p.y >= rows - 1) { splash.push({ c: p.c, r: rows - 1, life: 10, s: p.s }); return false; } x.fillStyle = `rgba(${p.s ? RH : GH},.8)`; x.fillText(pick(DROP), p.c * CW, p.y * CH); return true; });
+      splash = splash.filter(p => { p.life--; const a = p.life / 10 * .7; x.fillStyle = `rgba(${p.s ? R : G},${a})`; const w = 10 - p.life; x.fillText('_', p.c * CW, p.r * CH); if (w > 1) { x.fillText('.', (p.c - Math.ceil(w / 3)) * CW, (p.r - (w < 5 ? 1 : 0)) * CH); x.fillText('.', (p.c + Math.ceil(w / 3)) * CW, (p.r - (w < 5 ? 1 : 0)) * CH); } return p.life > 0; });
+      // flicker: single cells that flash and re-roll
+      if (sparks.length < Math.round(cols * rows / 220)) sparks.push({ c: Math.floor(Math.random() * cols), r: Math.floor(Math.random() * rows), life: Math.floor(rnd(4, 40)), ch: pick(SPARK), hot: Math.random() < .08 });
+      sparks = sparks.filter(p => p.life-- > 0);
+      for (const p of sparks) { if (Math.random() < .35) p.ch = pick(SPARK); const on = Math.random() < .8; if (!on) continue; x.fillStyle = p.hot ? `rgba(${side(p.c) ? RH : GH},${.5 + Math.random() * .4})` : `rgba(${INK},${Math.min(.2, p.life / 120)})`; x.fillText(p.ch, p.c * CW, p.r * CH); }
+      // a glitch line now and then
+      if (Math.random() < .03) { const r = Math.floor(Math.random() * rows), c0 = Math.floor(Math.random() * cols), n = Math.floor(rnd(6, 28)); x.fillStyle = `rgba(${Math.random() < .5 ? G : R},.32)`; for (let i = 0; i < n; i++) x.fillText(pick(SPARK), (c0 + i) * CW, r * CH); }
       // the cursor leaves a short wake
       mouse = mouse.filter(m => m.life-- > 0);
-      for (const m of mouse) { x.fillStyle = `rgba(${GREEN},${m.life / 60})`; x.fillText(m.ch, m.c * CW, m.r * CH); }
+      for (const m of mouse) { x.fillStyle = `rgba(${side(m.c) ? R : G},${m.life / 60})`; x.fillText(m.ch, m.c * CW, m.r * CH); }
+      x.globalAlpha = 1;
     }
     requestAnimationFrame(frame);
   }
